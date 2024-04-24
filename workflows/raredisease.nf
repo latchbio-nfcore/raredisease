@@ -182,23 +182,15 @@ workflow RAREDISEASE {
     PREPARE_REFERENCES (
         ch_genome_fasta,
         ch_genome_fai,
-        ch_mt_fasta,
-        ch_gnomad_af_tab,
-        ch_dbsnp,
-        ch_target_bed_unprocessed,
-        ch_vep_cache_unprocessed
     )
     .set { ch_references }
 
     // Gather built indices or get them from the params
-    ch_bait_intervals           = ch_references.bait_intervals
     ch_cadd_header              = Channel.fromPath("$projectDir/assets/cadd_to_vcf_header_-1.0-.txt", checkIfExists: true).collect()
     ch_cadd_resources           = params.cadd_resources                     ? Channel.fromPath(params.cadd_resources).collect()
                                                                             : Channel.value([])
     ch_call_interval            = params.call_interval                      ? Channel.fromPath(params.call_interval).map {it -> [[id:it[0].simpleName], it]}.collect()
                                                                             : Channel.value([[:],[]])
-    ch_dbsnp_tbi                = params.known_dbsnp_tbi                    ? Channel.fromPath(params.known_dbsnp_tbi).map {it -> [[id:it[0].simpleName], it]}.collect()
-                                                                            : ch_references.known_dbsnp_tbi.ifEmpty([[],[]])
     ch_foundin_header           = Channel.fromPath("$projectDir/assets/foundin.hdr", checkIfExists: true).collect()
     ch_gcnvcaller_model         = params.gcnvcaller_model                   ? Channel.fromPath(params.gcnvcaller_model).splitCsv ( header:true )
                                                                             .map { row ->
@@ -212,14 +204,6 @@ workflow RAREDISEASE {
     ch_genome_fai               = ch_references.genome_fai
     ch_genome_dictionary        = params.sequence_dictionary                ? Channel.fromPath(params.sequence_dictionary).map {it -> [[id:it[0].simpleName], it]}.collect()
                                                                             : ch_references.genome_dict
-    ch_mt_intervals             = ch_references.mt_intervals
-    ch_mtshift_backchain        = ch_references.mtshift_backchain
-    ch_mtshift_bwaindex         = ch_references.mtshift_bwa_index
-    ch_mtshift_bwamem2index     = ch_references.mtshift_bwamem2_index
-    ch_mtshift_dictionary       = ch_references.mtshift_dict
-    ch_mtshift_fai              = ch_references.mtshift_fai
-    ch_mtshift_fasta            = ch_references.mtshift_fasta
-    ch_mtshift_intervals        = ch_references.mtshift_intervals
 
     ch_versions                 = ch_versions.mix(ch_references.versions)
 
@@ -233,11 +217,6 @@ workflow RAREDISEASE {
         ch_genome_bwaindex,
         ch_genome_bwamem2index,
         ch_genome_dictionary,
-        ch_mtshift_bwaindex,
-        ch_mtshift_bwamem2index,
-        ch_mtshift_fasta,
-        ch_mtshift_dictionary,
-        ch_mtshift_fai,
         params.platform
     )
     .set { ch_mapped }
